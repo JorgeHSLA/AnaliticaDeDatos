@@ -13,3 +13,7 @@ Con el desarrollo de este laboratorio usted:
 
     - requests (para conexiones http y recuperardocumentos)
     - html5lib y beautifulsoup4 (mejorar entendimiento de html)
+    - urllib.parse (para analisis de URLS)
+
+### pasos:
+
