@@ -1,6 +1,9 @@
 import requests
 from urllib.parse import urlparse
 
+from collections import deque
+from bs4 import BeautifulSoup
+
 
 # Simulación de tus funciones wrapper
 class util:
@@ -65,3 +68,47 @@ class util:
 #        html = util.read_request(req)
 #        return html
 #    return None
+
+
+def go(n_paginas: int, dictionary: str, output: str):
+    start_url = "https://educacionvirtual.javeriana.edu.co/nuestros-programas-nuevo"
+    domain = "educacionvirtual.javeriana.edu.co"
+
+    cola = deque([start_url])
+    visitados = set()
+    paginas_visitadas = 0
+
+    while cola and paginas_visitadas < n_paginas:
+        url_actual = cola.popleft()
+        if url_actual in visitados:
+            continue
+
+        req = util.get_request(url_actual)
+        if req is None:
+            continue
+
+        html = util.read_request(req)
+        if not html:
+            continue
+
+        paginas_visitadas += 1
+        visitados.add(url_actual)
+        print(f"[{paginas_visitadas}] Visitando: {url_actual}")
+
+        soup = BeautifulSoup(html, "html5lib")
+
+        for a in soup.find_all("a", href=True):
+            href = a["href"]
+            abs_url = requests.compat.urljoin(url_actual, href)
+            if util.is_url_ok_to_follow(abs_url, domain):
+                if abs_url not in visitados:
+                    cola.append(abs_url)
+
+    print(f"Total páginas visitadas: {paginas_visitadas}")
+
+
+
+
+    #Pruebas
+if __name__ == "__main__":
+ go(n_paginas=5, dictionary="dummy.json", output="dummy.csv")
