@@ -47,8 +47,10 @@ class util:
         # Devuelve True si la URL es correcta
         parsed = urlparse(url)
         if not parsed.scheme or not parsed.netloc:
+
             return False
         if not parsed.netloc.endswith(domain):
+
             return False
         if "@" in url or url.startswith("mailto:"):
             return False
@@ -59,29 +61,36 @@ class util:
 
 
 def go(n_paginas: int, dictionary: str, output: str):
-    #  Rastrea hasta n_paginas del catálogo de cursos, construye un índice
+    """
+    Rastrea hasta n_paginas del catálogo de cursos y construye un índice
+    palabra -> set(course_id), guardado en un CSV.
+    """
 
-    ## URL de inicio
-    start_url = "https://educacionvirtual.javeriana.edu.co/nuestros-programas-nuevo"
-    ## Dominio permitido
     domain = "educacionvirtual.javeriana.edu.co"
-
-    ### Cola de URLs que garantiza el orden de visita
-    cola = deque([start_url])
-    ###Conjunto de URLs visitadas (evita repeticiones)
+    cola = deque([  # URL inicial del catálogo
+        "https://educacionvirtual.javeriana.edu.co/nuestros-programas-nuevo"
+    ])
     visitados = set()
     paginas_visitadas = 0
 
-    ### Diccionario de índices, palabra -> set(course_id)
-    index = {} 
-    ### Palabras excluidas
-    stopwords = {"un", "una", "y", "o","tu", "de", "la","precio", "el", "curso", "estudiantes", "profesionales", "para", "con", "que", "en", "los", "las", "del", "su", "sus", "se", "por", "al", "lo", "es", "su", "sus", "duración","horas","en"}
+    # Diccionario de índices, palabra -> set(course_id)
+    index = {}
 
-    
+    # Palabras a excluir (stopwords)
+    stopwords = {
+        "un", "una", "y", "o", "tu", "de", "la", "precio", "el",
+        "curso", "estudiantes", "profesionales", "para", "con",
+        "que", "en", "los", "las", "del", "su", "sus", "se",
+        "por", "al", "lo", "es", "duración", "horas"
+    }
 
-    ### Bucle principal
+    # --------- Bucle principal ---------
     while cola and paginas_visitadas < n_paginas:
         url_actual = cola.popleft()
+        if not util.is_url_ok_to_follow(url_actual, domain):
+            print(f"URL no permitida: {url_actual}")
+            continue
+
         if url_actual in visitados:
             continue
 
@@ -89,6 +98,7 @@ def go(n_paginas: int, dictionary: str, output: str):
         req = util.get_request(url_actual)
         if req is None:
             continue
+
         # Leer HTML
         html = util.read_request(req)
         if not html:
@@ -102,42 +112,62 @@ def go(n_paginas: int, dictionary: str, output: str):
         soup = BeautifulSoup(html, "html5lib")
 
         # ---------- EXTRACCIÓN Y TOKENIZACIÓN ----------
-        for div in soup.find_all("div", class_="card-body"):
+        for card in soup.find_all("div", class_="card-body"):
             # Enlace al curso
-            enlace = div.find("a", href=True)
+            enlace = card.find("a", href=True)
             if not enlace:
                 continue
 
-            # Se construye la url absoluta y se obtiene el id_curso
+            # URL absoluta e id del curso
             course_url = requests.compat.urljoin(url_actual, enlace["href"])
             course_id = course_url.rstrip("/").split("/")[-1]
 
-            titulo = enlace.get_text(strip=True)
-            descripcion = " ".join(p.get_text(strip=True) for p in div.find_all("p"))
-            # Texto combinado en minúsculas
+            # ---- Extraer título dentro de la tarjeta ----
+            titulo_h2 = card.find("h2", class_="font-weight-bold mb-md-0")
+            titulo = titulo_h2.get_text(strip=True) if titulo_h2 else ""
+
+            # ---- Extraer <p> dentro de divs grandes ----
+            content_divs = card.find_all(
+                "div", class_=re.compile(r"course-wrapper-content.*")
+            )
+            descripcion = " ".join(
+                p.get_text(strip=True)
+                for content_div in content_divs
+                for p in content_div.find_all("p")
+                if p.get_text(strip=True)
+            )
+
+            # Texto combinado (minúsculas)
             texto = (titulo + " " + descripcion).lower()
 
-            # tokens válidos: empiezan con letra, >1 char, letras/dígitos/_
+            # Tokenización
             palabras = re.findall(r"[a-zA-Z][\w\d_]+", texto)
-            palabras = [p.rstrip("!:.,") for p in palabras
-                        if len(p) > 1 and p not in stopwords]
+            palabras = [
+                p.rstrip("!:.,")
+                for p in palabras
+                if len(p) > 1 and p not in stopwords
+            ]
 
-            # Agregar al índice cada palabra con su course_id
+            # Agregar al índice
             for palabra in palabras:
                 index.setdefault(palabra, set()).add(course_id)
 
+        # ---------- ENCOLAR NUEVOS ENLACES ----------
+        for a in soup.find_all("a", href=True):
+            href = a["href"]
+            abs_url = requests.compat.urljoin(url_actual, href)
+            if util.is_url_ok_to_follow(abs_url, domain) and abs_url not in visitados:
+                cola.append(abs_url)
 
+    # --------- Fin del rastreo ---------
     print(f"Total páginas visitadas: {paginas_visitadas}")
-
     print("Total palabras indexadas:", len(index))
 
-
-    ### Guardar CSV con course_id|palabra
+    # --------- Guardar CSV ---------
     with open(output, "w", encoding="utf-8") as f:
         for palabra, cursos in index.items():
             for cid in cursos:
                 f.write(f"{cid}|{palabra}\n")
-
 
 
 def extract_first_card_anchor(html: str) -> Optional[str]:
@@ -231,7 +261,7 @@ def extract_anchors_from_li(html: str, base_url: str, max_anchors: int) -> deque
     return anchors_queue
 
 # Ejemplo de uso
-if __name__ == "__main__":
+def queue(max_anchors: int):
     url = "https://educacionvirtual.javeriana.edu.co/nuestros-programas-nuevo"
     fetch_dynamic_html(url, "pagina_dinamica.html")
     # Suponiendo que ya tienes el HTML cargado
@@ -239,9 +269,23 @@ if __name__ == "__main__":
         html_content = file.read()
 
     base_url = "https://educacionvirtual.javeriana.edu.co/"
-    max_anchors = 5  # Cambia este valor según lo necesites
 
     anchors = extract_anchors_from_li(html_content, base_url, max_anchors)
     print("Enlaces extraídos:")
     for link in anchors:
         print(link)
+    return anchors
+
+if __name__ == "__main__":
+    # Parámetros de ejemplo para la función go
+    n_paginas = 10  # Número de páginas a rastrear
+    dictionary = "dictionary.json"  # Archivo de diccionario
+    output = "output.csv"  # Archivo de salida
+
+    # Ejecutar la función go con los parámetros
+    go(n_paginas, dictionary, output)
+
+    print("Ejecución completada. Revisa el archivo de salida.")
+
+
+
