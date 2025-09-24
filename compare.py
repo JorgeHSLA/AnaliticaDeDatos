@@ -1,4 +1,3 @@
-
 import sys
 import csv
 
@@ -16,7 +15,7 @@ def load_from_csv(csv_path: str) -> dict:
     return cursos
 
 
-def jaccard(set1: set, set2: set) -> float:
+def jaccard(set1: set, set2: set) -> float: # forma de medir similitud entre dos conjuntos de 0 a 1 
     """
     Calcula la similitud de Jaccard entre dos conjuntos.
     """
