@@ -78,7 +78,10 @@ def go(n_paginas: int, dictionary: str, output: str):
         "curso", "estudiantes", "profesionales", "para", "con",
         "que", "en", "los", "las", "del", "su", "sus", "se",
         "por", "al", "lo", "es", "duración", "horas", "como", "módulo",
-        "objetivos", "bi", "dax", "través"
+        "objetivos", "bi", "dax", "través", "entre", "más","universidad", "ya",
+        "este", "cuentan", "pontificia", "javeriana", "com","despues", "antes","comienza",
+        "esta", "pero", "cuando", "tema", "le", "sobre", "tema", "libro","taller"
+
     }
 
     # --------- Bucle principal ---------
@@ -116,12 +119,12 @@ def go(n_paginas: int, dictionary: str, output: str):
         for div in presentacion:
             texts.append(div.get_text(" ", strip=True))
 
-        # 3. Objetivos del curso
+          #3. Objetivos del curso
         objetivos = soup.find("div", class_=re.compile(r"course-wrapper-content--objectives"))
         if objetivos:
             texts.append(objetivos.get_text(" ", strip=True))
 
-        # Texto combinado
+        #Texto combinado
         texto = " ".join(texts).lower()
 
         # ---------- TOKENIZACIÓN ----------
@@ -133,7 +136,7 @@ def go(n_paginas: int, dictionary: str, output: str):
 
         # ---------- TOP 6 PALABRAS ----------
         counter = Counter(palabras_limpias)
-        top6 = [w for w, _ in counter.most_common(6)]
+        top6 = [w for w, _ in counter.most_common(4)]
 
         # Guardar en el índice
         course_id = url_actual.rstrip("/").split("/")[-1]

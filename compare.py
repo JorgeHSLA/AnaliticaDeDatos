@@ -1,8 +1,8 @@
 import sys
 import csv
 
-def load_from_csv(csv_path: str) -> dict:
-    
+def load_from_csv() -> dict:
+    csv_path = "output.csv"
     # Carga el CSV y devuelve un diccionario:  { course_id: set(palabras) }
     cursos = {}
     with open(csv_path, "r", encoding="utf-8") as f:
@@ -24,18 +24,18 @@ def jaccard(set1: set, set2: set) -> float: # forma de medir similitud entre dos
     return len(set1 & set2) / len(set1 | set2)
 
 
-def compare(csv_path: str, curso1: str, curso2: str) -> None:
+def compare( curso1: str, curso2: str) -> None:
     """
     Imprime la similitud Jaccard entre curso1 y curso2
     usando el índice construido desde el CSV.
     """
-    cursos = load_from_csv(csv_path)
+    cursos = load_from_csv()
 
     if curso1 not in cursos:
-        print(f"Curso {curso1} no encontrado en {csv_path}")
+        print(f"Curso {curso1} no encontrado en csv")
         return
     if curso2 not in cursos:
-        print(f"Curso {curso2} no encontrado en {csv_path}")
+        print(f"Curso {curso2} no encontrado en csv")
         return
 
     set1 = cursos[curso1]
@@ -48,9 +48,9 @@ def compare(csv_path: str, curso1: str, curso2: str) -> None:
 
 # --------- Modo consola ----------
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Uso: python compare.py <archivo_csv> <curso1_id> <curso2_id>")
+    if len(sys.argv) != 3:
+        print("Uso: python compare.py <curso1_id> <curso2_id>")
         sys.exit(1)
 
-    csv_path, curso1, curso2 = sys.argv[1], sys.argv[2], sys.argv[3]
-    compare(csv_path, curso1, curso2)
+    curso1, curso2 = sys.argv[1], sys.argv[2]
+    compare( curso1, curso2)
