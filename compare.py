@@ -21,7 +21,7 @@ def jaccard(set1: set, set2: set) -> float: # forma de medir similitud entre dos
     """
     if not set1 and not set2:
         return 0.0
-    return len(set1 & set2) / len(set1 | set2)
+    return (len(set1 & set2) / len(set1 | set2)) 
 
 
 def compare( curso1: str, curso2: str) -> None:

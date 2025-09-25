@@ -80,8 +80,11 @@ def go(n_paginas: int, dictionary: str, output: str):
         "por", "al", "lo", "es", "duración", "horas", "como", "módulo",
         "objetivos", "bi", "dax", "través", "entre", "más","universidad", "ya",
         "este", "cuentan", "pontificia", "javeriana", "com","despues", "antes","comienza",
-        "esta", "pero", "cuando", "tema", "le", "sobre", "tema", "libro","taller"
-
+        "esta", "pero", "cuando", "tema", "le", "sobre", "libro","taller", "informes",
+        "educación","temas", "cada", "quien", "quienes", "partir", "facilitar", "estudio",
+        "algunas", "varios", "diferentes", "diversos", "dentro", "fuera", "además", "algunos",
+        "son", "fue", "ser", "tiene", "tienen", "toda", "todas", "todo", "todos", "años",
+        "año", "meses", "mes", "día", "días", "si", "no", "más", "muy", "tan", "tal",
     }
 
     # --------- Bucle principal ---------
@@ -136,7 +139,7 @@ def go(n_paginas: int, dictionary: str, output: str):
 
         # ---------- TOP 6 PALABRAS ----------
         counter = Counter(palabras_limpias)
-        top6 = [w for w, _ in counter.most_common(4)]
+        top6 = [w for w, _ in counter.most_common(10)]
 
         # Guardar en el índice
         course_id = url_actual.rstrip("/").split("/")[-1]
