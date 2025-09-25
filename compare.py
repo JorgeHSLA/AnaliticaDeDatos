@@ -16,19 +16,16 @@ def load_from_csv() -> dict:
 
 
 def jaccard(set1: set, set2: set) -> float: # forma de medir similitud entre dos conjuntos de 0 a 1 
-    """
-    Calcula la similitud de Jaccard entre dos conjuntos.
-    """
+    
+    # Calcula la similitud de Jaccard entre dos conjuntos.
     if not set1 and not set2:
         return 0.0
     return (len(set1 & set2) / len(set1 | set2)) 
 
 
 def compare( curso1: str, curso2: str) -> None:
-    """
-    Imprime la similitud Jaccard entre curso1 y curso2
-    usando el índice construido desde el CSV.
-    """
+
+    # Imprime la similitud Jaccard entre curso1 y curso2 usando el índice construido desde el CSV.
     cursos = load_from_csv()
 
     if curso1 not in cursos:
