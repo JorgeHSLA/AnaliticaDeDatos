@@ -74,17 +74,36 @@ def go(n_paginas: int, dictionary: str, output: str):
 
     # Palabras a excluir
     lesswords = {
-        "un", "una", "y", "o", "tu", "de", "la", "precio", "el",
-        "curso", "estudiantes", "profesionales", "para", "con",
-        "que", "en", "los", "las", "del", "su", "sus", "se",
-        "por", "al", "lo", "es", "duración", "horas", "como", "módulo",
-        "objetivos", "bi", "dax", "través", "entre", "más","universidad", "ya",
-        "este", "cuentan", "pontificia", "javeriana", "com","despues", "antes","comienza",
-        "esta", "pero", "cuando", "tema", "le", "sobre", "libro","taller", "informes",
-        "educación","temas", "cada", "quien", "quienes", "partir", "facilitar", "estudio",
-        "algunas", "varios", "diferentes", "diversos", "dentro", "fuera", "además", "algunos",
-        "son", "fue", "ser", "tiene", "tienen", "toda", "todas", "todo", "todos", "años",
-        "año", "meses", "mes", "día", "días", "si", "no", "más", "muy", "tan", "tal",
+        "un", "una", "tu", "de", "precio", 
+        # Artículos y determinantes
+        "una","unos","unas","el","la","los","las","lo",
+        "este","esta","estos","estas","ese","esa","esos","esas",
+        "aquel","aquella","aquellos","aquellas","al","del","cual","cuales",
+
+        # Pronombres
+        "yo","tú","vos","usted","él","ella","nosotros","nosotras",
+        "ustedes","ellos","ellas","me","te","se","nos","les","le",
+        "lo","la","los","las","mi","mis","tu","tus","su","sus","nuestro",
+        "nuestra","vuestro","vuestra",
+
+        # Preposiciones y conjunciones
+        "a","ante","bajo","cabe","con","contra","de","desde","durante",
+        "en","entre","hacia","hasta","mediante","para","por","según",
+        "sin","so","sobre","tras","y","o","u","ni","pero","sino",
+        "aunque","porque","pues","ya","además","también","entonces",
+        "donde","cuando","como","mientras","si","que","quien","quienes",
+
+        # Verbos muy comunes
+        "ser","soy","eres","es","somos","son","fui","fue","eran","será",
+        "estar","estoy","estás","está","están","estuve","estaba",
+        "haber","hay","había","hubo","habrán","he","has","ha","han",
+        "tener","tengo","tienes","tiene","tenemos","tienen","tuve","tenía",
+        "hacer","hago","haces","hace","hacen","hacía","hizo",
+        "poder","puedo","puede","pueden","podemos","podía","podrán",
+        "deber","debe","deben","debía","querer","quiero","quiere","quieren",
+        "ir","voy","vas","va","vamos","van","iba",
+
+        
     }
 
     # --------- Bucle principal ---------
@@ -139,7 +158,7 @@ def go(n_paginas: int, dictionary: str, output: str):
 
         # ---------- TOP 6 PALABRAS ----------
         counter = Counter(palabras_limpias)
-        top6 = [w for w, _ in counter.most_common(10)]
+        top6 = [w for w, _ in counter.most_common(15)]
 
         # Guardar en el índice
         course_id = url_actual.rstrip("/").split("/")[-1]
@@ -265,7 +284,7 @@ def queue(max_anchors: int):
 
 if __name__ == "__main__":
     # Parámetros de ejemplo para la función go
-    n_paginas = 15  # Número de páginas a rastrear
+    n_paginas = 33  # Número de páginas a rastrear
     dictionary = "dictionary.json"  # Archivo de diccionario
     output = "output.csv"  # Archivo de salida
 
