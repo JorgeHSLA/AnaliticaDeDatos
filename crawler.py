@@ -78,7 +78,7 @@ def go(n_paginas: int, dictionary: str, output: str):
         "curso", "estudiantes", "profesionales", "para", "con",
         "que", "en", "los", "las", "del", "su", "sus", "se",
         "por", "al", "lo", "es", "duración", "horas", "como", "módulo",
-        "objetivos"
+        "objetivos", "bi", "dax", "través"
     }
 
     # --------- Bucle principal ---------
@@ -259,7 +259,7 @@ def queue(max_anchors: int):
 
 if __name__ == "__main__":
     # Parámetros de ejemplo para la función go
-    n_paginas = 10  # Número de páginas a rastrear
+    n_paginas = 15  # Número de páginas a rastrear
     dictionary = "dictionary.json"  # Archivo de diccionario
     output = "output.csv"  # Archivo de salida
 
