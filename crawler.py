@@ -1,19 +1,17 @@
 import requests
 from urllib.parse import urlparse
 from typing import Optional, List
-
+import re
 from collections import deque
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 from webdriver_manager.chrome import ChromeDriverManager
-
-import re
+from collections import Counter
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
-import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -63,101 +61,84 @@ class util:
 def go(n_paginas: int, dictionary: str, output: str):
     """
     Rastrea hasta n_paginas del catálogo de cursos y construye un índice
-    palabra -> set(course_id), guardado en un CSV.
+    con las 6 palabras más repetidas en título, presentación y objetivos.
     """
 
     domain = "educacionvirtual.javeriana.edu.co"
-    cola = deque([  # URL inicial del catálogo
-        "https://educacionvirtual.javeriana.edu.co/nuestros-programas-nuevo"
-    ])
+    cola = queue(n_paginas)  # Cola de URLs ya preparada con los cursos
     visitados = set()
     paginas_visitadas = 0
 
     # Diccionario de índices, palabra -> set(course_id)
     index = {}
 
-    # Palabras a excluir (stopwords)
-    stopwords = {
+    # Palabras a excluir
+    lesswords = {
         "un", "una", "y", "o", "tu", "de", "la", "precio", "el",
         "curso", "estudiantes", "profesionales", "para", "con",
         "que", "en", "los", "las", "del", "su", "sus", "se",
-        "por", "al", "lo", "es", "duración", "horas"
+        "por", "al", "lo", "es", "duración", "horas", "como", "módulo",
+        "objetivos"
     }
 
     # --------- Bucle principal ---------
     while cola and paginas_visitadas < n_paginas:
         url_actual = cola.popleft()
         if not util.is_url_ok_to_follow(url_actual, domain):
-            print(f"URL no permitida: {url_actual}")
             continue
-
         if url_actual in visitados:
             continue
 
-        # Solicitud HTTP
         req = util.get_request(url_actual)
         if req is None:
             continue
 
-        # Leer HTML
         html = util.read_request(req)
         if not html:
             continue
 
-        # Marcar URL como visitada
         paginas_visitadas += 1
         visitados.add(url_actual)
         print(f"[{paginas_visitadas}] Visitando: {url_actual}")
 
         soup = BeautifulSoup(html, "html5lib")
 
-        # ---------- EXTRACCIÓN Y TOKENIZACIÓN ----------
-        for card in soup.find_all("div", class_="card-body"):
-            # Enlace al curso
-            enlace = card.find("a", href=True)
-            if not enlace:
-                continue
+        # ---------- EXTRACCIÓN DE TEXTO ----------
+        texts = []
 
-            # URL absoluta e id del curso
-            course_url = requests.compat.urljoin(url_actual, enlace["href"])
-            course_id = course_url.rstrip("/").split("/")[-1]
+        # 1. Título del curso
+        titulo_h2 = soup.find("h2", class_="font-weight-bold mb-md-0")
+        if titulo_h2:
+            texts.append(titulo_h2.get_text(" ", strip=True))
 
-            # ---- Extraer título dentro de la tarjeta ----
-            titulo_h2 = card.find("h2", class_="font-weight-bold mb-md-0")
-            titulo = titulo_h2.get_text(strip=True) if titulo_h2 else ""
+        # 2. Presentación del programa
+        presentacion = soup.find_all("div", style=re.compile("text-align:justify"))
+        for div in presentacion:
+            texts.append(div.get_text(" ", strip=True))
 
-            # ---- Extraer <p> dentro de divs grandes ----
-            content_divs = card.find_all(
-                "div", class_=re.compile(r"course-wrapper-content.*")
-            )
-            descripcion = " ".join(
-                p.get_text(strip=True)
-                for content_div in content_divs
-                for p in content_div.find_all("p")
-                if p.get_text(strip=True)
-            )
+        # 3. Objetivos del curso
+        objetivos = soup.find("div", class_=re.compile(r"course-wrapper-content--objectives"))
+        if objetivos:
+            texts.append(objetivos.get_text(" ", strip=True))
 
-            # Texto combinado (minúsculas)
-            texto = (titulo + " " + descripcion).lower()
+        # Texto combinado
+        texto = " ".join(texts).lower()
 
-            # Tokenización
-            palabras = re.findall(r"[a-zA-Z][\w\d_]+", texto)
-            palabras = [
-                p.rstrip("!:.,")
-                for p in palabras
-                if len(p) > 1 and p not in stopwords
-            ]
+        # ---------- TOKENIZACIÓN ----------
+        palabras = re.findall(r"[a-zA-Záéíóúñ][\w\d_áéíóúñ]+", texto)
+        palabras_limpias = [
+            p.rstrip("!:.,;") for p in palabras
+            if len(p) > 1 and p not in lesswords
+        ]
 
-            # Agregar al índice
-            for palabra in palabras:
-                index.setdefault(palabra, set()).add(course_id)
+        # ---------- TOP 6 PALABRAS ----------
+        counter = Counter(palabras_limpias)
+        top6 = [w for w, _ in counter.most_common(6)]
 
-        # ---------- ENCOLAR NUEVOS ENLACES ----------
-        for a in soup.find_all("a", href=True):
-            href = a["href"]
-            abs_url = requests.compat.urljoin(url_actual, href)
-            if util.is_url_ok_to_follow(abs_url, domain) and abs_url not in visitados:
-                cola.append(abs_url)
+        # Guardar en el índice
+        course_id = url_actual.rstrip("/").split("/")[-1]
+        for palabra in top6:
+            index.setdefault(palabra, set()).add(course_id)
 
     # --------- Fin del rastreo ---------
     print(f"Total páginas visitadas: {paginas_visitadas}")
