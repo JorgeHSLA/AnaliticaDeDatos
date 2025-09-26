@@ -295,12 +295,12 @@ def csv_to_sql(csv_path: str, sql_path: str, table_name: str = "indexador"):
         # Crear tabla
         sql_file.write(f"DROP TABLE IF EXISTS {table_name};\n")
         sql_file.write(f"""
-CREATE TABLE {table_name} (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    course_id TEXT NOT NULL,
-    palabra TEXT NOT NULL
-);
-\n""")
+                        CREATE TABLE {table_name} (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            course_id TEXT NOT NULL,
+                            palabra TEXT NOT NULL
+                        );
+                        \n""")
 
         # Insertar filas
         for row in reader:
