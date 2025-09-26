@@ -295,12 +295,12 @@ def csv_to_sql(csv_path: str, sql_path: str, table_name: str = "indexador"):
         # Crear tabla
         sql_file.write(f"DROP TABLE IF EXISTS {table_name};\n")
         sql_file.write(f"""
-                        CREATE TABLE {table_name} (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            course_id TEXT NOT NULL,
-                            palabra TEXT NOT NULL
-                        );
-                        \n""")
+CREATE TABLE {table_name} (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    course_id TEXT NOT NULL,
+    palabra TEXT NOT NULL
+);
+\n""")
 
         # Insertar filas
         for row in reader:
@@ -316,7 +316,7 @@ def csv_to_sql(csv_path: str, sql_path: str, table_name: str = "indexador"):
 
 if __name__ == "__main__":
     # Parámetros de ejemplo para la función go
-    n_paginas = 33  # Número de páginas a rastrear
+    n_paginas = int(input("Ingrese el número de páginas a rastrear: "))  # Número de páginas a rastrear
     dictionary = "dictionary.json"  # Archivo de diccionario
     output = "output.csv"  # Archivo de salida
 
