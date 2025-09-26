@@ -18,7 +18,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+import csv
 # ---------- util ----------
 class util:
     @staticmethod
@@ -175,6 +175,8 @@ def go(n_paginas: int, dictionary: str, output: str):
             for cid in cursos:
                 f.write(f"{cid}|{palabra}\n")
 
+    csv_to_sql(output, "output.sql")
+
 
 def extract_first_card_anchor(html: str) -> Optional[str]:
     """
@@ -208,7 +210,7 @@ def fetch_dynamic_html(url, output_file):
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
 
-    # 👇 webdriver-manager se encarga de bajar y configurar ChromeDriver
+    # webdriver-manager se encarga de bajar y configurar ChromeDriver
     driver = webdriver.Chrome(
         service=Service(ChromeDriverManager().install()),
         options=chrome_options
@@ -281,6 +283,36 @@ def queue(max_anchors: int):
     for link in anchors:
         print(link)
     return anchors
+
+
+def csv_to_sql(csv_path: str, sql_path: str, table_name: str = "indexador"):
+    """
+    Convierte un archivo CSV (course_id|palabra) a un archivo SQL con CREATE TABLE e INSERTS para cumplir el enunciado.
+    """
+    with open(csv_path, "r", encoding="utf-8") as f, open(sql_path, "w", encoding="utf-8") as sql_file:
+        reader = csv.reader(f, delimiter="|")
+
+        # Crear tabla
+        sql_file.write(f"DROP TABLE IF EXISTS {table_name};\n")
+        sql_file.write(f"""
+CREATE TABLE {table_name} (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    course_id TEXT NOT NULL,
+    palabra TEXT NOT NULL
+);
+\n""")
+
+        # Insertar filas
+        for row in reader:
+            if len(row) != 2:
+                continue
+            course_id, palabra = row
+            # Escapar comillas simples en caso de que existan
+            course_id = course_id.replace("'", "''")
+            palabra = palabra.replace("'", "''")
+            sql_file.write(f"INSERT INTO {table_name} (course_id, palabra) VALUES ('{course_id}', '{palabra}');\n")
+
+    print(f"✅ Archivo SQL generado en: {sql_path}")
 
 if __name__ == "__main__":
     # Parámetros de ejemplo para la función go
