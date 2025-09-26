@@ -1,22 +1,23 @@
 import csv
-import unicodedata 
+import unicodedata
 
-# Función de normalización
+# ------------------------------------------------------------
+# Normaliza: minúsculas y sin tildes
+# ------------------------------------------------------------
 def normalize(text: str) -> str:
-
-    # Pasa a minúsculas y quita tildes.
     text = text.lower()
     return ''.join(
         c for c in unicodedata.normalize('NFD', text)
         if unicodedata.category(c) != 'Mn'
     )
 
-# Busca los cursos más relevantes a una lista de palabras clave
+# ------------------------------------------------------------
+# Busca cursos más relevantes según las palabras clave
+# ------------------------------------------------------------
 def search(keywords: list[str], top_k: int = 10) -> list[tuple[str, float]]:
-    # Noraliza intereses del usuario
-    query = [normalize(k) for k in keywords]   
+    query = [normalize(k) for k in keywords]
 
-    # Carga el CSV en un diccionario
+    # Cargar CSV en {curso_id: set(palabras)}
     cursos = {}
     with open("output.csv", "r", encoding="utf-8") as f:
         reader = csv.reader(f, delimiter="|")
@@ -26,21 +27,19 @@ def search(keywords: list[str], top_k: int = 10) -> list[tuple[str, float]]:
             cid, palabra = row
             cursos.setdefault(cid, set()).add(normalize(palabra))
 
-    # Calcula relevancia de cada curso 
+    # Calcular relevancia
     ranking = []
     for cid, words in cursos.items():
-        # Palabras en común
         match = len(words & set(query))
         if match == 0:
             continue
         score = match / len(query)
         ranking.append((cid, score))
 
-
-    # Ordenar de mayor a menor relevancia
+    # Ordenar por relevancia descendente
     ranking.sort(key=lambda x: x[1], reverse=True)
 
-    # Se reconstruye la URL
+    # Reconstruir URLs
     results = []
     for cid, score in ranking[:top_k]:
         url = f"https://educacionvirtual.javeriana.edu.co/{cid}"
@@ -48,10 +47,26 @@ def search(keywords: list[str], top_k: int = 10) -> list[tuple[str, float]]:
 
     return results
 
-# CONSOLA
+# ------------------------------------------------------------
+# Interacción con el usuario
+# ------------------------------------------------------------
 if __name__ == "__main__":
-    intereses = ["experiencias","individualidad"]  
-    resultados = search(intereses, top_k=5)
-    print("Cursos más relevantes:")
-    for url, score in resultados:
-        print(f"{url}  (relevancia {score:.2f})")
+    print("=== Buscador de cursos ===")
+    print("Escribe tus intereses separados por espacios o comas.")
+    print("Ejemplo: fotografia luminosidad composicion\n")
+
+    # Leer una sola línea y dividir en palabras
+    entrada = input("Intereses: ")
+    # Permite que el usuario escriba: "vida, experiencia, genero"
+    intereses = [pal.strip() for pal in entrada.replace(",", " ").split() if pal.strip()]
+
+    if not intereses:
+        print("No ingresaste intereses.")
+    else:
+        resultados = search(intereses, top_k=10)
+        if resultados:
+            print("\nCursos más relevantes:")
+            for url, score in resultados:
+                print(f"{url}  (relevancia {score:.2f})")
+        else:
+            print("\nNo se encontraron cursos que coincidan con esos intereses.")
