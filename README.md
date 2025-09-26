@@ -58,7 +58,7 @@ Con el desarrollo de este laboratorio usted:
 
 
 
-Preguntas del laboratorio: 
+### Preguntas del laboratorio: 
 
 Dada la consulta de una palabra en los cursos de la Universidad, ¿cómo mostrar las URLs por orden de relevancia?  
 
