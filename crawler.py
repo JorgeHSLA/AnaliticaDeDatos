@@ -158,7 +158,7 @@ def go(n_paginas: int, dictionary: str, output: str):
 
         # ---------- TOP 6 PALABRAS ----------
         counter = Counter(palabras_limpias)
-        top6 = [w for w, _ in counter.most_common(15)]
+        top6 = [w for w, _ in counter.most_common(5)]
 
         # Guardar en el índice
         course_id = url_actual.rstrip("/").split("/")[-1]
