@@ -23,7 +23,10 @@ Con el desarrollo de este laboratorio usted:
 
 1. Lo primero a realizar fue el crawler:
     1. Implementamos parte del codigo requerido por las especificaciones en el docuemnto pdf en la clase util, en este hay 3 funciones: get_request(url), el cual realiza una petición HTTP GET y devuelve un objeto response, read_request(request) Que el cuerpo de la petición y lo devuelve, y is_url_ok_to_follow(url: str, domain: str) que determina si la url es concuerda con lo que buscamos
-    2. Despues lo que se hizo fue una forma de traer los paths de 
+    2. Despues lo que se hizo fue una forma de traer los paths de los cursos, la cantidad de cursos extraidos depende de la cantidad indicada por el usuario
+    3. Esos cursos se guardaban en una cola y de ahi se van sacando para extraer informacion de ciertas partes de su html (Título del curso, Presentación del programa y Objetivos del curso)
+    4. Posterior a eso se guarda en un archivo las palabras mas repetidas de la informacion extraida, este archivo es un csv
+    5. para terminar se coge el archivo csv y se hace una traduccion a un script de sql
 
 
 2. En segundo lugar se realizó el compare:
@@ -82,3 +85,12 @@ Esta es una forma sencilla de calcular ya que no depende de la longitud de los d
 Para intereses [musica, composicion, instrumento], se construye un conjunto con esas palabras y se calcula la similitud de Jaccard entre ese conjunto y el conjunto de palabras de cada curso (explicado más detallado en la respuesta anterior). 
 Sin embargo, hay ciertas desventajas ya que no pondera frecuencia, no reconoce sinónimos ni contexto. 
 El rendimiento se mide por tiempo de búsqueda y, si se dispone de datos de verdad, por métricas de recuperación como precisión y recall. 
+
+
+Conclusiones:
+
+1. No deben haber ni muchas ni pocas palabras clave sino un valor equilibrado (como por ejemplo 5), ya que si hay muchas los valores se acercaría la comparacion mucho a cero y en caso contrario no se podría evaluar bien la similitud.
+
+2. La parte de html del codigo que queriamos analizar se creaba con javascript, por ende para extraerla bien tuvimos que usar herramientas mas complejas que la libreria requests (selenium), ya que con selenium se puede extraer lo que el javascript cargue
+
+3. toca descartar muchas palabras que generalizxan mucho o que hacen ruido para comparar, pero si se quitan muchas palabras generales no se podran encontrar similitudes
