@@ -74,7 +74,7 @@ def go(n_paginas: int, dictionary: str, output: str):
 
     # Palabras a excluir
     lesswords = {
-        "un", "una", "tu", "de", "precio", 
+        "un", "una", "tu", "de", "precio", "javeriana", "educación",
         # Artículos y determinantes
         "una","unos","unas","el","la","los","las","lo",
         "este","esta","estos","estas","ese","esa","esos","esas",
